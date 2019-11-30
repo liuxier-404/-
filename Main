@@ -1,0 +1,156 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+using namespace std;
+typedef struct node {
+	int LatestTime;
+	int EarlistTime;
+	bool ifkey = false;
+}NODE;
+int Max(int a, int b) {
+	return a > b ? a : b;
+}
+int Min(int a, int b) {
+	return a < b ? a : b;
+}
+int begin, end;	
+int keynumber = 0;
+int longestway = 0;
+int keynodes[100];
+int map[100][100];
+int chudu[100];
+int rudu[100];
+char nodename[100][5];
+NODE nodes[100];
+int keyway[100];
+int nodenumber, sidenumber;
+int SearchTime1(int nodeorder) {
+	if (nodeorder == begin) {
+		nodes[begin].EarlistTime = 0;
+		return 0;
+	}
+	for (int i = 0; i < nodenumber; i++) {
+		if (map[i][nodeorder] > 0) {
+			if (nodes[i].EarlistTime != 0) {
+				nodes[nodeorder].EarlistTime=Max(nodes[i].EarlistTime + map[i][nodeorder], nodes[nodeorder].EarlistTime);
+			}
+			else {
+				nodes[nodeorder].EarlistTime =  Max(SearchTime1(i)+map[i][nodeorder], nodes[nodeorder].EarlistTime);
+			}
+		}
+	}
+	return nodes[nodeorder].EarlistTime;
+}
+int SearchTime2(int nodeorder) {
+	if (nodeorder == end) {
+		nodes[end].LatestTime = nodes[end].EarlistTime;
+		return nodes[end].EarlistTime;
+}
+	for (int i = 0; i < nodenumber; i++) {
+		if (map[nodeorder][i] > 0) {
+			if (nodes[i].LatestTime != 0) {
+				if (nodes[nodeorder].LatestTime == 0&&nodeorder!=begin)
+					nodes[nodeorder].LatestTime = nodes[i].LatestTime - map[nodeorder][i];
+				else
+					nodes[nodeorder].LatestTime = Min(nodes[i].LatestTime - map[nodeorder][i], nodes[nodeorder].LatestTime);
+			}
+			else {
+				if (nodes[nodeorder].LatestTime == 0&&nodeorder!=begin)
+					nodes[nodeorder].LatestTime = SearchTime2(i) - map[nodeorder][i];
+				else
+					nodes[nodeorder].LatestTime = Min(SearchTime2(i) - map[nodeorder][i], nodes[nodeorder].LatestTime);
+			}
+		}
+	}
+	return nodes[nodeorder].LatestTime;
+}
+void FindTheWay(int nownode,int length,int steps) {
+	if (nownode == end) {
+		if (length == longestway) {
+			int i = 0;
+			printf("%s-", nodename[begin]);
+			while (i<steps-1) {
+				printf("%s-", nodename[keyway[i]]);
+				i++;
+			}
+			printf("%s\n", nodename[end]);
+		}
+		return;
+	}
+	for (int i = 0; i < keynumber; i++) {
+		if (map[nownode][keynodes[i]] > 0) {
+			steps++;
+			length += map[nownode][keynodes[i]];
+			keyway[steps - 1] = keynodes[i];
+			FindTheWay(keynodes[i], length, steps);
+			steps--;
+			length -= map[nownode][keynodes[i]];
+		}
+	}
+}
+int main() {
+	memset(map, 0, sizeof(map));
+	memset(chudu, 0, sizeof(chudu));
+	memset(rudu, 0, sizeof(rudu));
+	memset(nodes, 0, sizeof(nodes));
+	memset(nodes, 0, sizeof(nodes));
+
+
+	int way[100];
+	scanf("%d,%d", &nodenumber, &sidenumber);
+	getchar();
+	for (int i = 0; i < nodenumber; i++) {
+		for (int j = 0; 1; j++) {
+			char ch = getchar();
+			if (ch != ','&&ch!='\n')
+				nodename[i][j] = ch;
+			else {
+				nodename[i][j] = '\0';
+				break;
+			}
+		}
+	}
+	for (int i = 0; i < sidenumber; i++) {
+		int a, b, value;
+		scanf("<%d,%d,%d>", &a, &b, &value);
+		map[a][b] = value;
+		rudu[b]++;
+		chudu[a]++;
+		getchar();
+	}
+	//求拓扑序列
+	for (int i = 0; i < nodenumber; i++) {
+		for (int j = 0; j <= nodenumber; j++) {
+			if (rudu[j] == 0) {
+				way[i] = j;
+				rudu[j] = -1;
+				for (int k = 0; k < nodenumber; k++) {
+					if (map[j][k] > 0)
+						rudu[k]--;
+				}
+				break;
+			}
+		}
+		if (way[i] == nodenumber) {
+			printf("NO TOPOLOGICAL PATH\n");
+			return 0;
+		}
+	}
+	for (int i = 0; i < nodenumber - 1; i++)
+		printf("%s-", nodename[way[i]]);
+	printf("%s\n", nodename[way[nodenumber - 1]]);
+//查询关键路径
+	begin = way[0];
+	end = way[nodenumber - 1];
+	SearchTime1(end);
+	SearchTime2(begin);
+	longestway = nodes[end].EarlistTime;
+
+	for (int i = 0; i < nodenumber; i++) {
+		if (nodes[i].EarlistTime == nodes[i].LatestTime)
+			keynodes[keynumber++] = i;
+	}
+	//递归求解关键路径
+	FindTheWay(begin, 0, 0);
+	return 0;
+}
