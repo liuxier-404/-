@@ -5,4 +5,5 @@
 ![image](https://github.com/liuxier-404/Calculate-the-critical-path-for-the-completion-of-the-project/blob/master/1.jpg)
 
 ![image](https://github.com/liuxier-404/Calculate-the-critical-path-for-the-completion-of-the-project/blob/master/2.jpg)
+
 ![image](https://github.com/liuxier-404/Calculate-the-critical-path-for-the-completion-of-the-project/blob/master/3.jpg)
